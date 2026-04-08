@@ -18,6 +18,7 @@ import { resolveImageApiFormat } from '@/lib/api-key-manager';
 import { uploadBase64Image } from '@/lib/utils/image-upload';
 import { isVeoModel, resolveVeoUploadCapability } from '@/lib/freedom/veo-capability';
 import { type AIFeature, useAPIConfigStore } from '@/stores/api-config-store';
+import { isTensorsLabBaseUrl, isTensorsLabImageModel, isTensorsLabVideoModel, tensorslabGenerateImage, tensorslabGenerateVideo } from '@/lib/ai/tensorslab/client';
 import { useMediaStore } from '@/stores/media-store';
 import { useProjectStore } from '@/stores/project-store';
 import { toast } from 'sonner';
@@ -352,6 +353,19 @@ async function _generateFreedomImageInner(
   // 模型 ID 直接透传：UI 选的就是供应商原始 ID，无需转换
   const model = params.model || defaultModel;
   const normalizedBase = baseUrl.replace(/\/+$/, '');
+
+  if (isTensorsLabBaseUrl(normalizedBase) && isTensorsLabImageModel(model)) {
+    const result = await tensorslabGenerateImage({
+      apiKey,
+      baseUrl: normalizedBase,
+      model,
+      prompt: params.prompt,
+      aspectRatio: params.aspectRatio || '16:9',
+      resolution: params.resolution,
+      referenceImages: params.referenceImages,
+    });
+    return { url: result.imageUrl, taskId: result.taskId };
+  }
 
   // ── Smart Routing: choose endpoint based on model metadata ──
   const endpointTypes = useAPIConfigStore.getState().modelEndpointTypes[model];
@@ -866,6 +880,21 @@ async function _generateFreedomVideoInner(
   const apiKey = config.keyManager?.getCurrentKey?.() || config.apiKey;
   // 模型 ID 直接透传：UI 选的就是供应商原始 ID，无需转换
   const model = params.model || defaultModel;
+  const normalizedBase = baseUrl.replace(/\/+$/, '');
+
+  if (isTensorsLabBaseUrl(normalizedBase) && isTensorsLabVideoModel(model)) {
+    const result = await tensorslabGenerateVideo({
+      apiKey,
+      baseUrl: normalizedBase,
+      model,
+      prompt: params.prompt,
+      ratio: params.aspectRatio || '16:9',
+      duration: params.duration || 5,
+      resolution: params.resolution,
+      sourceImages: params.uploadFiles?.map(f => ({ url: f.url, role: f.type === 'image_end' ? 'last_frame' : 'first_frame' })) || [],
+    });
+    return { url: result.videoUrl, taskId: result.taskId };
+  }
 
   const endpointTypes = useAPIConfigStore.getState().modelEndpointTypes[model];
   const route = detectFreedomVideoRoute(model, endpointTypes);

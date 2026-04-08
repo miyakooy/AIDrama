@@ -56,6 +56,27 @@ const FEATURE_DEFAULT_MODEL: Partial<Record<AIFeature, Record<string, string>>> 
   image_understanding: {
     memefast: 'gemini-3.1-pro-preview', // 魔音API 默认使用 Gemini 3.1 Pro
   },
+  script_analysis: {
+    memefast: 'deepseek-v3.2',
+  },
+  chat: {
+    memefast: 'deepseek-v3.2',
+  },
+  character_generation: {
+    memefast: 'seedreamv5',
+  },
+  scene_generation: {
+    memefast: 'seedreamv5',
+  },
+  freedom_image: {
+    memefast: 'seedreamv5',
+  },
+  video_generation: {
+    memefast: 'seedancev2',
+  },
+  freedom_video: {
+    memefast: 'seedancev2',
+  },
 };
 
 

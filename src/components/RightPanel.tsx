@@ -27,7 +27,7 @@ export function RightPanel() {
   };
 
   return (
-    <div className="h-full min-w-0 flex flex-col overflow-hidden bg-panel">
+    <div className="h-full min-w-0 flex flex-col overflow-hidden glass rounded-xl border border-white/5">
       <div className="p-3 border-b border-border">
         <h3 className="font-medium text-sm">属性</h3>
       </div>

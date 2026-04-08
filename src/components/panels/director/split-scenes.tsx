@@ -66,7 +66,7 @@ import { getFeatureConfig, getFeatureNotConfiguredMessage } from "@/lib/ai/featu
 import { submitGridImageRequest } from "@/lib/ai/image-generator";
 import { uploadToImageHost, isImageHostConfigured } from "@/lib/image-host";
 import { saveVideoToLocal, readImageAsBase64 } from '@/lib/image-storage';
-import { callVideoGenerationApi, extractLastFrameFromVideo, isContentModerationError } from './use-video-generation';
+import { callVideoGenerationApi, extractLastFrameFromVideo, isContentModerationError } from '@/lib/ai/video-generator';
 import { persistSceneImage } from '@/lib/utils/image-persist';
 import {
   Select,
@@ -335,11 +335,16 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
   const storyboardStatus = projectData?.storyboardStatus || 'idle';
   const storyboardImage = projectData?.storyboardImage || null;
   const storyboardConfig = projectData?.storyboardConfig || {
-    aspectRatio: '9:16' as const,
+    aspectRatio: '16:9' as const,
     resolution: '2K' as const,
-    videoResolution: '480p' as const,
+    videoResolution: '1080p' as const,
+    fps: '24' as const,
     sceneCount: 5,
     storyPrompt: '',
+    styleTokens: [] as string[],
+    characterReferenceImages: [] as string[],
+    visualStyleId: undefined as string | undefined,
+    calibratedStyleId: undefined as string | undefined,
   };
   const projectFolderId = projectData?.projectFolderId || null;
   // 预告片数据 - 直接从 splitScenes 筛选，保证功能一致
@@ -1759,6 +1764,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
         keyManager,
         platform,
         storyboardConfig.videoResolution as '480p' | '720p' | '1080p' | undefined,
+        storyboardConfig.fps as '24' | '30' | '60' | undefined,
         undefined,  // videoRefs
         undefined,  // audioRefs
         undefined,  // enableAudio
@@ -3532,7 +3538,7 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
 
                 {/* Video Resolution Selector */}
                 <Select
-                  value={storyboardConfig.videoResolution || '480p'}
+                  value={storyboardConfig.videoResolution || '1080p'}
                   onValueChange={(v: '480p' | '720p' | '1080p') => {
                     setStoryboardConfig({ videoResolution: v });
                     toast.success(`视频分辨率已切换为 ${v}`);
@@ -3544,7 +3550,25 @@ export function SplitScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
                   <SelectContent>
                     <SelectItem value="480p" className="text-xs">标准 (480P)</SelectItem>
                     <SelectItem value="720p" className="text-xs">高清 (720P)</SelectItem>
-                    <SelectItem value="1080p" className="text-xs">高品质 (1080P)</SelectItem>
+                    <SelectItem value="1080p" className="text-xs">超清 (1080P)</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* FPS Selector */}
+                <Select
+                  value={storyboardConfig.fps || '24'}
+                  onValueChange={(v: '24' | '30' | '60') => {
+                    setStoryboardConfig({ fps: v });
+                    toast.success(`视频帧率已切换为 ${v} fps`);
+                  }}
+                >
+                  <SelectTrigger className="w-[100px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="24" className="text-xs">24 fps</SelectItem>
+                    <SelectItem value="30" className="text-xs">30 fps</SelectItem>
+                    <SelectItem value="60" className="text-xs">60 fps</SelectItem>
                   </SelectContent>
                 </Select>
 

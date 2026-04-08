@@ -49,7 +49,7 @@ export function PreviewPanel() {
   }
 
   return (
-    <div className="h-full min-w-0 flex flex-col bg-neutral-200 dark:bg-neutral-900">
+    <div className="h-full min-w-0 flex flex-col bg-transparent overflow-hidden rounded-xl">
       <div className="flex-1 flex items-center justify-center overflow-hidden">
         {previewItem.type === "image" ? (
           <img

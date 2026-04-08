@@ -49,7 +49,7 @@ export function Layout() {
     return (
       <div className="h-full flex bg-background">
         <TabBar />
-        <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
           <ProjectHeader />
           {activeTab === "export" && <ExportView />}
           {activeTab === "settings" && <SettingsPanel />}
@@ -96,12 +96,20 @@ export function Layout() {
   };
 
   return (
-    <div className="h-full flex bg-background">
+    <div className="h-full flex bg-background relative overflow-hidden">
+      {/* 全局环境光晕，增强所有 Glass 面板的折射感 */}
+      {inProject && (
+        <>
+          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[150px] pointer-events-none z-0" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/10 rounded-full blur-[150px] pointer-events-none z-0" />
+        </>
+      )}
+
       {/* Left: TabBar - full height */}
       <TabBar />
 
       {/* Right content area */}
-      <div className="flex-1 min-w-0 flex flex-col">
+      <div className="flex-1 min-w-0 flex flex-col relative z-10">
         {/* Top: Project Header with save status */}
         <ProjectHeader />
         
@@ -109,40 +117,44 @@ export function Layout() {
         <ResizablePanelGroup direction="vertical" className="flex-1 min-h-0 min-w-0">
         {/* Main content row */}
         <ResizablePanel defaultSize={85} minSize={50} className="min-h-0 min-w-0">
-          <ResizablePanelGroup direction="horizontal" className="min-h-0 min-w-0">
-            {/* Left Panel: Content based on active tab */}
-            <ResizablePanel defaultSize={26} minSize={18} maxSize={40} className="min-w-0">
-              <div className="h-full min-w-0 overflow-hidden bg-panel border-r border-border">
-                {renderLeftPanel()}
-              </div>
-            </ResizablePanel>
+            <ResizablePanelGroup direction="horizontal" className="min-h-0 min-w-0 gap-2 p-2">
+              {/* Left Panel: Content based on active tab */}
+              <ResizablePanel defaultSize={26} minSize={18} maxSize={40} className="min-w-0">
+                <div className="h-full min-w-0 overflow-hidden glass rounded-xl border border-white/5">
+                  {renderLeftPanel()}
+                </div>
+              </ResizablePanel>
 
-            <ResizableHandle />
+              <ResizableHandle className="bg-transparent w-1" />
 
-            {/* Center: Preview */}
-            <ResizablePanel defaultSize={54} minSize={28} className="min-w-0">
-              <div className="h-full min-w-0 overflow-hidden">
-                <PreviewPanel />
-              </div>
-            </ResizablePanel>
+              {/* Center: Preview */}
+              <ResizablePanel defaultSize={54} minSize={28} className="min-w-0">
+                <div className="h-full min-w-0 flex flex-col glass rounded-xl border border-white/5">
+                  <PreviewPanel />
+                </div>
+              </ResizablePanel>
 
-            <ResizableHandle />
+              <ResizableHandle className="bg-transparent w-1" />
 
-            {/* Right: Properties */}
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={32} className="min-w-0">
-              <div className="h-full min-w-0 overflow-hidden border-l border-border">
-                {renderRightPanel()}
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </ResizablePanel>
+              {/* Right: Properties */}
+              <ResizablePanel defaultSize={20} minSize={15} maxSize={32} className="min-w-0">
+                <div className="h-full min-w-0 overflow-hidden glass rounded-xl border border-white/5">
+                  {renderRightPanel()}
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </ResizablePanel>
 
           {/* Bottom: Timeline - only for director and media tabs */}
           {showTimeline && (
             <>
-              <ResizableHandle />
+              <ResizableHandle className="bg-transparent h-1" />
               <ResizablePanel defaultSize={15} minSize={10} maxSize={40}>
-                <SimpleTimeline />
+                <div className="h-full px-2 pb-2">
+                  <div className="h-full min-w-0 overflow-hidden glass rounded-xl border border-white/5">
+                    <SimpleTimeline />
+                  </div>
+                </div>
               </ResizablePanel>
             </>
           )}

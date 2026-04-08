@@ -13,6 +13,8 @@ import { calculateGrid, type AspectRatio, type Resolution, RESOLUTION_PRESETS } 
 import { retryOperation } from "@/lib/utils/retry";
 import { delay, RATE_LIMITS } from "@/lib/utils/rate-limiter";
 import { submitGridImageRequest } from '@/lib/ai/image-generator';
+import { callVideoGenerationApi } from "@/lib/ai/video-generator";
+import { getFeatureConfig } from "@/lib/ai/feature-router";
 
 export interface StoryboardGenerationConfig {
   storyPrompt: string;
@@ -507,143 +509,6 @@ export async function generateStoryboardImage(
 }
 
 /**
- * Submit video generation task
- */
-async function submitVideoGenTask(
-  imageInput: string,
-  prompt: string,
-  aspectRatio: string,
-  apiKey: string,
-  referenceImages?: string[],
-  model?: string,
-  baseUrl?: string,
-  videoResolution?: '480p' | '720p' | '1080p'
-): Promise<{ taskId?: string; videoUrl?: string; estimatedTime?: number }> {
-  if (!model) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆瑙嗛鐢熸垚妯″瀷');
-  }
-  if (!baseUrl) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆瑙嗛鐢熸垚鏈嶅姟鏄犲皠');
-  }
-  const actualModel = model;
-  const actualBaseUrl = baseUrl.replace(/\/+$/, '');
-  // Build image_with_roles array for doubao-seedance model
-  interface ImageWithRole {
-    url: string;
-    role: 'first_frame' | 'last_frame' | 'reference_image';
-  }
-
-  const roles: ImageWithRole[] = [];
-
-  // First image as first_frame
-  roles.push({ url: imageInput, role: 'first_frame' });
-
-  // Add character reference images (max 4)
-  if (referenceImages && referenceImages.length > 0) {
-    const maxRefs = Math.min(referenceImages.length, 4);
-    for (let i = 0; i < maxRefs; i++) {
-      roles.push({ url: referenceImages[i], role: 'reference_image' });
-    }
-  }
-
-  const requestBody: Record<string, unknown> = {
-    model: actualModel,
-    prompt: prompt,
-    duration: 5,
-    aspect_ratio: aspectRatio,
-    resolution: videoResolution || '480p',
-    audio: true,
-    camerafixed: false,
-    image_with_roles: roles,
-  };
-
-  console.log('[StoryboardService] Submitting video to:', actualBaseUrl, {
-    model: requestBody.model,
-    aspectRatio: requestBody.aspect_ratio,
-    promptPreview: prompt.substring(0, 100),
-    imageRolesCount: roles.length,
-  });
-
-  // Use retry wrapper for 429 rate limit handling
-  const data = await retryOperation(async () => {
-    const endpoint = buildEndpoint(actualBaseUrl, 'videos/generations');
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-        console.error('[StoryboardService] Video API error:', response.status, errorText);
-
-        let errorMessage = `Video API error: ${response.status}`;
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.error?.message || errorJson.message || errorJson.msg || errorMessage;
-      } catch {
-        if (errorText && errorText.length < 200) {
-          errorMessage = errorText;
-        }
-      }
-
-      if (response.status === 401 || response.status === 403) {
-        throw new Error('API Key 无效或已过期，请检查配置');
-      }
-
-      const error = new Error(errorMessage) as Error & { status?: number };
-      error.status = response.status;
-      throw error;
-    }
-
-    return response.json();
-  }, {
-    maxRetries: 3,
-      baseDelay: 5000,
-    retryOn429: true,
-  });
-
-  console.log('[StoryboardService] Video API response:', data);
-
-  // Parse response
-  let taskId: string | undefined;
-  const dataField = data.data;
-  if (Array.isArray(dataField) && dataField.length > 0) {
-    taskId = dataField[0].task_id?.toString() || dataField[0].id?.toString();
-  } else if (dataField && typeof dataField === 'object') {
-    taskId = dataField.task_id?.toString() || dataField.id?.toString();
-  } else {
-    taskId = data.task_id?.toString() || data.id?.toString();
-  }
-
-  if (!taskId) {
-    throw new Error('API returned empty task ID');
-  }
-
-  return {
-    taskId,
-    estimatedTime: data.estimated_time || 120,
-  };
-}
-
-/**
- * Poll video task status until completion
- * Uses the same unified /v1/tasks/ endpoint
- */
-async function pollVideoTaskCompletion(
-  taskId: string,
-  apiKey: string,
-  baseUrl: string,
-  onProgress?: (progress: number) => void
-): Promise<string> {
-  // Use the unified polling function with video type and dynamic baseUrl
-  return pollTaskCompletion(taskId, apiKey, baseUrl, onProgress, 'video');
-}
-
-/**
  * Generate videos for split scenes
  * Directly calls external APIs for Electron desktop app
  */
@@ -681,7 +546,7 @@ export async function generateSceneVideos(
 
   // Validate API key
   if (!apiKey && !mockMode) {
-    throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆 API Key');
+    throw new Error('请先在设置中配置 API Key');
   }
 
   // Process scenes sequentially with rate limiting
@@ -708,58 +573,41 @@ export async function generateSceneVideos(
 
       onSceneProgress?.(scene.id, 10);
 
-      // Submit video generation task directly to external API
-      // API supports base64 data URLs directly
-      if (provider !== 'zhipu') {
-        const resolvedBaseUrl = baseUrl?.replace(/\/+$/, '');
-        if (!resolvedBaseUrl) {
-          throw new Error('璇峰厛鍦ㄨ缃腑閰嶇疆瑙嗛鐢熸垚鏈嶅姟鏄犲皠');
-        }
-        const result = await submitVideoGenTask(
-          scene.imageDataUrl,
-          scene.videoPrompt,
-          aspectRatio,
-          apiKey,
-          characterReferenceImages,
-          model,
-          resolvedBaseUrl,
-          config.videoResolution
-        );
+      // Image formatting for video generator
+      const imageWithRoles: Array<{ url: string; role: 'first_frame' | 'last_frame' }> = [];
+      imageWithRoles.push({ url: scene.imageDataUrl, role: 'first_frame' });
+      // Currently video generator only uses first_frame and last_frame.
+      // If we want to support character reference images, we need to pass them or adapt.
+      // But video generator doesn't use reference_image role actively except in Volc.
+      // We will pass them down if needed.
+      
+      const featureConfig = getFeatureConfig('video_generation');
+      const keyManager = featureConfig?.keyManager;
 
-        onSceneProgress?.(scene.id, 30);
+      const videoUrl = await callVideoGenerationApi(
+        apiKey,
+        scene.videoPrompt,
+        5, // default duration
+        aspectRatio,
+        imageWithRoles,
+        (progress) => {
+          onSceneProgress?.(scene.id, 10 + Math.floor(progress * 0.9));
+        },
+        keyManager,
+        provider,
+        config.videoResolution
+      );
 
-        // If video URL is returned directly (unlikely for video)
-        if (result.videoUrl) {
-          results.set(scene.id, result.videoUrl);
-          onSceneProgress?.(scene.id, 100);
-          onSceneComplete?.(scene.id, result.videoUrl);
-          continue;
-        }
+      results.set(scene.id, videoUrl);
+      onSceneProgress?.(scene.id, 100);
+      onSceneComplete?.(scene.id, videoUrl);
 
-        // Poll for completion
-        if (result.taskId) {
-          const videoUrl = await pollVideoTaskCompletion(
-            result.taskId,
-            apiKey,
-            resolvedBaseUrl, // 浣跨敤涓庢彁浜や换鍔＄浉鍚岀殑 baseUrl
-            (progress) => {
-              onSceneProgress?.(scene.id, 30 + Math.floor(progress * 0.7));
-            }
-          );
-
-          results.set(scene.id, videoUrl);
-          onSceneProgress?.(scene.id, 100);
-          onSceneComplete?.(scene.id, videoUrl);
-        } else {
-          throw new Error('Invalid API response: no taskId or videoUrl');
-        }
-      } else {
-        throw new Error(`Video generation not yet supported for provider: ${provider}`);
-      }
     } catch (error) {
-      const err = error as Error;
-      console.error(`[StoryboardService] Scene ${scene.id} video generation failed:`, err);
-      onSceneFailed?.(scene.id, err.message);
+      console.error(`[StoryboardService] Scene ${scene.id} video generation failed:`, error);
+      onSceneFailed?.(
+        scene.id,
+        error instanceof Error ? error.message : 'Unknown error occurred during video generation'
+      );
     }
   }
 

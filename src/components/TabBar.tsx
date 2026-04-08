@@ -19,10 +19,14 @@ export function TabBar() {
   // Dashboard mode
   if (!inProject) {
     return (
-      <div className="flex flex-col w-14 bg-panel border-r border-border py-2">
+        <div className="flex flex-col w-14 border-r border-white/5 glass py-2 relative shadow-xl z-30">
         <div className="p-2">
-          <div className="w-8 h-8 bg-primary text-primary-foreground flex items-center justify-center mx-auto rounded">
-            <span className="text-sm font-bold">M</span>
+          <div className="w-8 h-8 bg-transparent flex items-center justify-center mx-auto rounded overflow-hidden">
+            <img 
+              src="https://coreva-normal.trae.ai/api/ide/v1/text_to_image?prompt=Cute%20pink%20and%20white%20kawaii%20cat%20face%2C%20large%20round%20dark%20eyes%2C%20simple%20flat%20vector%20illustration%2C%20light%20pink%20background%2C%20logo%20design&image_size=square" 
+              alt="Logo" 
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
         {/* Dashboard nav */}
@@ -53,11 +57,11 @@ export function TabBar() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <a
-                  href="https://github.com/MemeCalculate/moyin-creator/blob/main/docs/WORKFLOW_GUIDE.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex flex-col items-center py-2 text-muted-foreground hover:text-foreground transition-colors"
-                >
+                href="https://wcnt4lo56m8u.feishu.cn/wiki/MTdewDmBniI9HoknEo4c3VX6nAc"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex flex-col items-center py-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
                   <HelpCircle className="h-4 w-4" />
                   <span className="text-[8px]">帮助</span>
                 </a>
@@ -105,12 +109,22 @@ export function TabBar() {
   }
 
   // Project mode - flat navigation
-  return (
-    <div className="flex flex-col w-14 bg-panel border-r border-border">
+    return (
+      <div className="flex flex-col w-14 border-r border-white/5 glass relative shadow-xl z-30">
       {/* Logo + Back */}
       <div className="p-2 border-b border-border">
-        <div className="w-8 h-8 bg-primary text-primary-foreground flex items-center justify-center mx-auto rounded mb-1">
-          <span className="text-sm font-bold">M</span>
+        <div className="w-8 h-8 bg-transparent flex items-center justify-center mx-auto rounded mb-1">
+          <svg width="24" height="24" viewBox="0 0 400 135" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M51.8258 74.0048L51.8258 93.9161L71.4925 105.158L71.4925 117.848L40.7592 100.274L40.7592 67.6214L51.8258 74.0048Z" fill="#66B8FF"/>
+            <path d="M125.992 60.158L125.992 40.2467L106.326 29.0048L106.326 16.3144L137.059 33.8887L137.059 66.5413L125.992 60.158Z" fill="#66B8FF"/>
+            <path d="M96.0461 117.828L78.9627 108.061L98.6294 96.819L109.696 103.202L96.0461 110.985V117.828Z" fill="#66B8FF"/>
+            <path d="M81.7716 26.1017L98.8549 35.8687L79.1883 47.1107L68.1216 40.7273L81.7716 32.9439V26.1017Z" fill="#66B8FF"/>
+            <path d="M40.7592 53.7745L40.7592 40.0841L51.8258 33.7008V47.3911L40.7592 53.7745Z" fill="#66B8FF"/>
+            <path d="M137.059 80.3884V94.0787L125.992 100.462L125.992 86.7718L137.059 80.3884Z" fill="#66B8FF"/>
+            <path d="M88.9092 107.502L106.326 97.4357V46.6107L88.9092 56.6773V107.502Z" fill="#66B8FF"/>
+            <path d="M51.8258 61.2774V50.1107L106.326 81.3607L106.326 92.5274L51.8258 61.2774Z" fill="#66B8FF"/>
+            <path d="M125.992 72.8853V84.052L71.4925 52.802L71.4925 41.6353L125.992 72.8853Z" fill="#66B8FF"/>
+          </svg>
         </div>
         <TooltipProvider delayDuration={300}>
           <Tooltip>
@@ -165,7 +179,7 @@ export function TabBar() {
           <Tooltip>
             <TooltipTrigger asChild>
               <a
-                href="https://github.com/MemeCalculate/moyin-creator/blob/main/docs/WORKFLOW_GUIDE.md"
+                href="https://wcnt4lo56m8u.feishu.cn/wiki/MTdewDmBniI9HoknEo4c3VX6nAc"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full flex flex-col items-center py-2 text-muted-foreground hover:text-foreground transition-colors"

@@ -34,26 +34,24 @@ export interface IProvider {
  * 默认供应商模板
  * 
  * 核心供应商：
- * 1. 魔因API (memefast) - 全功能 AI 中转（推荐），支持文本/图片/视频/识图
+ * 1. TensorsLab (memefast) - 全功能 AI 中转（推荐），支持文本/图片/视频/识图
  * 2. RunningHub - 视角切换/多角度生成
  */
 export const DEFAULT_PROVIDERS: Omit<IProvider, 'id' | 'apiKey'>[] = [
   {
     platform: 'memefast',
-    name: '魔因API',
-    baseUrl: 'https://memefast.top',
+    name: 'TensorsLab',
+    baseUrl: 'https://api.tensorslab.com',
     model: [
+      'seedreamv5',
+      'seedreamv4',
+      'seedancev2',
+      'seedancev15pro',
       'deepseek-v3.2',
       'glm-4.7',
       'gemini-3-pro-preview',
-      'gemini-3-pro-image-preview',
-      'gpt-image-1.5',
-      'doubao-seedance-1-5-pro-251215',
-      'veo3.1',
-      'sora-2-all',
-      'wan2.6-i2v',
-      'grok-video-3-10s',
-      'claude-haiku-4-5-20251001',
+      'gpt-4o',
+      'claude-3-5-sonnet-20241022'
     ],
     capabilities: ['text', 'vision', 'image_generation', 'video_generation'],
   },
@@ -63,6 +61,22 @@ export const DEFAULT_PROVIDERS: Omit<IProvider, 'id' | 'apiKey'>[] = [
     baseUrl: 'https://www.runninghub.cn/openapi/v2',
     model: ['2009613632530812930'],
     capabilities: ['image_generation', 'vision'],
+  },
+  {
+    platform: 'tensorslab',
+    name: 'TensorsLab',
+    baseUrl: 'https://api.tensorslab.com',
+    model: [
+      'seedreamv5',
+      'seedreamv4',
+      'zimage',
+      'quickedit',
+      'seedancev2',
+      'seedancev15pro',
+      'seedancev1profast',
+      'seedancev1',
+    ],
+    capabilities: ['image_generation', 'video_generation'],
   },
 ];
 
@@ -133,7 +147,7 @@ const IMAGE_ENDPOINT_MAP: Record<string, ModelApiFormat> = {
 };
 
 // MemeFast supported_endpoint_types 值 → 我们的视频 API 格式能力分类
-// 注意：这里统一映射为 'openai_video' 仅表示「视频生成能力」，实际 API 路由由 use-video-generation.ts 中的 VIDEO_FORMAT_MAP 决定
+// 注意：这里统一映射为 'openai_video' 仅表示「视频生成能力」，具体逻辑见 src/lib/ai/video-generator.ts 的 detectVideoApiFormat
 const VIDEO_ENDPOINT_MAP: Record<string, ModelApiFormat> = {
   '视频统一格式': 'openai_video',
   'openAI视频格式': 'openai_video',

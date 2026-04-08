@@ -65,7 +65,7 @@ import { submitGridImageRequest } from "@/lib/ai/image-generator";
 import { uploadToImageHost, isImageHostConfigured } from "@/lib/image-host";
 import { saveVideoToLocal, readImageAsBase64 } from '@/lib/image-storage';
 import { persistSceneImage } from '@/lib/utils/image-persist';
-import { callVideoGenerationApi, convertToHttpUrl, extractLastFrameFromVideo, isContentModerationError } from '../director/use-video-generation';
+import { callVideoGenerationApi, convertToHttpUrl, extractLastFrameFromVideo, isContentModerationError } from '@/lib/ai/video-generator';
 import {
   Select,
   SelectContent,
@@ -154,11 +154,16 @@ export function SClassScenes({ onBack, onGenerateVideos }: SplitScenesProps) {
   const storyboardStatus = projectData?.storyboardStatus || 'idle';
   const storyboardImage = projectData?.storyboardImage || null;
   const storyboardConfig = projectData?.storyboardConfig || {
-    aspectRatio: '9:16' as const,
+    aspectRatio: '16:9' as const,
     resolution: '2K' as const,
-    videoResolution: '480p' as const,
+    videoResolution: '1080p' as const,
+    fps: '24' as const,
     sceneCount: 5,
     storyPrompt: '',
+    styleTokens: [] as string[],
+    characterReferenceImages: [] as string[],
+    visualStyleId: undefined as string | undefined,
+    calibratedStyleId: undefined as string | undefined,
   };
   const projectFolderId = projectData?.projectFolderId || null;
   // 预告片数据 - 直接从 splitScenes 筛选，保证功能一致

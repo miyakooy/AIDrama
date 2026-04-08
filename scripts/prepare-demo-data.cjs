@@ -61,7 +61,7 @@ function prepareProjectStore() {
     state: {
       projects: [{
         id: DEMO_PROJECT_ID,
-        name: '灌篮少女（演示）',
+        name: '灌篮少女（Tensor喵大师）',
         createdAt: 1770385000000,
         updatedAt: Date.now(),
       }],

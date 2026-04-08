@@ -129,6 +129,16 @@ export const MODEL_DISPLAY_NAMES: Record<string, string> = {
   'ideogram_generate_V_2_SPEED': 'Ideogram V2 Speed',
   'ideogram_generate_V_2_TURBO': 'Ideogram V2 Turbo',
 
+  // --- TensorsLab Models ---
+  'seedreamv5': 'Seedream V5',
+  'seedreamv4': 'Seedream V4',
+  'zimage': 'Z-Image',
+  'quickedit': 'Quick Edit',
+  'seedancev2': 'Seedance V2',
+  'seedancev15pro': 'Seedance V1.5 Pro',
+  'seedancev1profast': 'Seedance V1 Pro Fast',
+  'seedancev1': 'Seedance V1',
+
   // --- Doubao / 豆包 / Seedream ---
   'doubao-seedream-4-0-250828': 'Seedream 4.0',
   'doubao-seedream-4-5-251128': 'Seedream 4.5',

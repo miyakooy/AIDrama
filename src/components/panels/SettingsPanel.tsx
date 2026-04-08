@@ -86,7 +86,19 @@ import packageJson from "../../../package.json";
 
 // Platform icon mapping
 const PLATFORM_ICONS: Record<string, React.ReactNode> = {
-  memefast: <Zap className="h-5 w-5" />,
+  memefast: (
+    <svg width="20" height="20" viewBox="0 0 400 135" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M51.8258 74.0048L51.8258 93.9161L71.4925 105.158L71.4925 117.848L40.7592 100.274L40.7592 67.6214L51.8258 74.0048Z" fill="currentColor"/>
+      <path d="M125.992 60.158L125.992 40.2467L106.326 29.0048L106.326 16.3144L137.059 33.8887L137.059 66.5413L125.992 60.158Z" fill="currentColor"/>
+      <path d="M96.0461 117.828L78.9627 108.061L98.6294 96.819L109.696 103.202L96.0461 110.985V117.828Z" fill="currentColor"/>
+      <path d="M81.7716 26.1017L98.8549 35.8687L79.1883 47.1107L68.1216 40.7273L81.7716 32.9439V26.1017Z" fill="currentColor"/>
+      <path d="M40.7592 53.7745L40.7592 40.0841L51.8258 33.7008V47.3911L40.7592 53.7745Z" fill="currentColor"/>
+      <path d="M137.059 80.3884V94.0787L125.992 100.462L125.992 86.7718L137.059 80.3884Z" fill="currentColor"/>
+      <path d="M88.9092 107.502L106.326 97.4357V46.6107L88.9092 56.6773V107.502Z" fill="currentColor"/>
+      <path d="M51.8258 61.2774V50.1107L106.326 81.3607L106.326 92.5274L51.8258 61.2774Z" fill="currentColor"/>
+      <path d="M125.992 72.8853V84.052L71.4925 52.802L71.4925 41.6353L125.992 72.8853Z" fill="currentColor"/>
+    </svg>
+  ),
   runninghub: <Image className="h-5 w-5" />,
   custom: <Settings className="h-5 w-5" />,
 };
@@ -149,23 +161,9 @@ export function SettingsPanel() {
     [imageHostProviders],
   );
 
-  // ====== Memefast 默认绑定自动补全 ======
-  // 覆盖场景：
-  //  1. 旧版本升级后已有 key 但 featureBindings 为空
-  //  2. 旧版本留下无效绑定（模型名错、provider ID 变更等）
-  //  3. 用户编辑填 key 后页面刷新
+  // ====== 默认绑定自动补全 ======
   useEffect(() => {
-    const mf = providers.find(p => p.platform === 'memefast');
-    if (!mf || parseApiKeys(mf.apiKey).length === 0) return;
-
-    const pid = mf.id;
-    const models = mf.model || [];
-    const defaults: Record<string, string> = {
-      script_analysis: `${pid}:deepseek-v3.2`,
-      character_generation: `${pid}:gemini-3-pro-image-preview`,
-      video_generation: `${pid}:doubao-seedance-1-5-pro-251215`,
-      image_understanding: `${pid}:gemini-2.5-flash`,
-    };
+    let changed = false;
 
     // 检查绑定是否有效
     const isBindingValid = (b: string): boolean => {
@@ -176,35 +174,67 @@ export function SettingsPanel() {
       const p = providers.find(pv => pv.id === ref || pv.platform === ref);
       if (!p || parseApiKeys(p.apiKey).length === 0) return false;
       // 模型列表为空时（尚未同步）暂时信任绑定
-      if (p.model.length === 0) return true;
+      if (!p.model || p.model.length === 0) return true;
       return p.model.includes(model);
     };
 
-    let changed = false;
-    for (const [feature, binding] of Object.entries(defaults)) {
-      const cur = getFeatureBindings(feature as AIFeature);
+    // 1. 处理 Memefast (剧本分析, 图片理解)
+    const mf = providers.find(p => p.platform === 'memefast');
+    if (mf && parseApiKeys(mf.apiKey).length > 0) {
+      const pid = mf.id;
+      const mfDefaults: Record<string, string> = {
+        script_analysis: `${pid}:deepseek-v3.2`,
+        image_understanding: `${pid}:gemini-2.5-flash`,
+      };
 
-      // 自愈：deepseek-v3 → deepseek-v3.2（在校验之前先迁移）
-      if (feature === 'script_analysis' && cur && cur.some(b => b.endsWith(':deepseek-v3'))) {
-        const migrated = cur.map(b => {
-          if (!b.endsWith(':deepseek-v3')) return b;
-          const i = b.indexOf(':');
-          return i > 0 ? `${b.slice(0, i)}:deepseek-v3.2` : binding;
-        });
-        setFeatureBindings(feature as AIFeature, [...new Set(migrated)]);
-        changed = true;
-        continue;
-      }
+      for (const [feature, binding] of Object.entries(mfDefaults)) {
+        const cur = getFeatureBindings(feature as AIFeature);
 
-      // 为空 或 全部无效 → 重新设置默认值
-      const needsDefault = !cur || cur.length === 0 || !cur.some(isBindingValid);
-      if (needsDefault) {
-        setFeatureBindings(feature as AIFeature, [binding]);
-        changed = true;
+        // 自愈：deepseek-v3 → deepseek-v3.2（在校验之前先迁移）
+        if (feature === 'script_analysis' && cur && cur.some(b => b.endsWith(':deepseek-v3'))) {
+          const migrated = cur.map(b => {
+            if (!b.endsWith(':deepseek-v3')) return b;
+            const i = b.indexOf(':');
+            return i > 0 ? `${b.slice(0, i)}:deepseek-v3.2` : binding;
+          });
+          setFeatureBindings(feature as AIFeature, [...new Set(migrated)]);
+          changed = true;
+          continue;
+        }
+
+        // 为空 或 全部无效 → 重新设置默认值
+        const needsDefault = !cur || cur.length === 0 || !cur.some(isBindingValid);
+        if (needsDefault) {
+          setFeatureBindings(feature as AIFeature, [binding]);
+          changed = true;
+        }
       }
     }
+
+    // 2. 处理 TensorsLab (生图, 生视频)
+    const tl = providers.find(p => p.platform === 'tensorslab');
+    if (tl && parseApiKeys(tl.apiKey).length > 0) {
+      const pid = tl.id;
+      const tlDefaults: Record<string, string> = {
+        character_generation: `${pid}:seedreamv5`,
+        scene_generation: `${pid}:seedreamv5`,
+        video_generation: `${pid}:seedancev2`,
+        freedom_image: `${pid}:seedreamv5`,
+        freedom_video: `${pid}:seedancev2`,
+      };
+
+      for (const [feature, binding] of Object.entries(tlDefaults)) {
+        const cur = getFeatureBindings(feature as AIFeature);
+        const needsDefault = !cur || cur.length === 0 || !cur.some(isBindingValid);
+        if (needsDefault) {
+          setFeatureBindings(feature as AIFeature, [binding]);
+          changed = true;
+        }
+      }
+    }
+
     if (changed) {
-      console.log('[SettingsPanel] Auto-applied memefast default bindings');
+      console.log('[SettingsPanel] Auto-applied default bindings');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [providers]);
@@ -633,29 +663,34 @@ export function SettingsPanel() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background overflow-hidden">
-      {/* Header */}
-      <div className="h-16 border-b border-border bg-panel px-6 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-4">
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-3">
-            <Settings className="w-5 h-5 text-primary" />
-            设置
-          </h2>
-        </div>
-        {activeTab === "api" && (
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground font-mono bg-muted border border-border px-2 py-1 rounded">
-              已配置: {configuredCount}/{providers.length}
-            </span>
-            <Button onClick={() => setAddDialogOpen(true)} size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              添加供应商
-            </Button>
+    <div className="flex flex-col h-full bg-background overflow-hidden relative">
+      {/* 背景环境光晕 */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[120px] pointer-events-none z-0" />
+      
+      <div className="relative z-10 flex flex-col h-full">
+        {/* Header */}
+        <div className="h-16 border-b border-white/5 bg-panel/70 backdrop-blur-md shadow-sm px-6 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-4">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-3 tracking-wide">
+              <Settings className="w-5 h-5 text-primary" />
+              全局设置
+            </h2>
           </div>
-        )}
-      </div>
+          {activeTab === "api" && (
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground font-mono bg-panel-elevated/50 border border-white/5 px-2 py-1 rounded">
+                已配置: {configuredCount}/{providers.length}
+              </span>
+              <Button onClick={() => setAddDialogOpen(true)} size="sm" className="shadow-md hover:-translate-y-[1px] transition-all duration-200">
+                <Plus className="h-4 w-4 mr-1" />
+                添加节点
+              </Button>
+            </div>
+          )}
+        </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden relative z-10">
         <div className="border-b border-border px-6">
           <TabsList className="h-12 bg-transparent p-0 gap-4">
             <TabsTrigger 
@@ -707,25 +742,35 @@ export function SettingsPanel() {
             </div>
           </div>
 
-          {/* MemeFast 购买引导 */}
+          {/* TensorsLab 购买引导 */}
           <a
-            href="https://memefast.top"
+            href="https://www.tensorslab.com/models"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-4 bg-gradient-to-r from-orange-500/5 to-primary/5 border border-orange-500/20 rounded-lg hover:border-orange-500/40 transition-colors group"
+            className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-500/5 to-primary/5 border border-blue-500/20 rounded-lg hover:border-blue-500/40 transition-colors group"
           >
-            <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500 shrink-0">
-              <Zap className="h-5 w-5" />
+            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500 shrink-0">
+              <svg width="20" height="20" viewBox="0 0 400 135" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M51.8258 74.0048L51.8258 93.9161L71.4925 105.158L71.4925 117.848L40.7592 100.274L40.7592 67.6214L51.8258 74.0048Z" fill="currentColor"/>
+                <path d="M125.992 60.158L125.992 40.2467L106.326 29.0048L106.326 16.3144L137.059 33.8887L137.059 66.5413L125.992 60.158Z" fill="currentColor"/>
+                <path d="M96.0461 117.828L78.9627 108.061L98.6294 96.819L109.696 103.202L96.0461 110.985V117.828Z" fill="currentColor"/>
+                <path d="M81.7716 26.1017L98.8549 35.8687L79.1883 47.1107L68.1216 40.7273L81.7716 32.9439V26.1017Z" fill="currentColor"/>
+                <path d="M40.7592 53.7745L40.7592 40.0841L51.8258 33.7008V47.3911L40.7592 53.7745Z" fill="currentColor"/>
+                <path d="M137.059 80.3884V94.0787L125.992 100.462L125.992 86.7718L137.059 80.3884Z" fill="currentColor"/>
+                <path d="M88.9092 107.502L106.326 97.4357V46.6107L88.9092 56.6773V107.502Z" fill="currentColor"/>
+                <path d="M51.8258 61.2774V50.1107L106.326 81.3607L106.326 92.5274L51.8258 61.2774Z" fill="currentColor"/>
+                <path d="M125.992 72.8853V84.052L71.4925 52.802L71.4925 41.6353L125.992 72.8853Z" fill="currentColor"/>
+              </svg>
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-medium text-foreground text-sm flex items-center gap-2">
-                魔因API
-                <span className="text-[10px] px-1.5 py-0.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded">
+                TensorsLab
+                <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded">
                   推荐
                 </span>
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                543+ AI 模型一站式接入，支持 GPT / Claude / Gemini / DeepSeek / Sora 等
+                AI 模型一站式接入，支持 GPT / Claude / Gemini / DeepSeek / Sora 等
               </p>
             </div>
             <span className="shrink-0 inline-flex items-center gap-1.5 text-xs font-medium text-primary group-hover:underline">
@@ -751,16 +796,16 @@ export function SettingsPanel() {
                   尚未配置任何供应商
                 </h3>
                 <p className="text-sm text-muted-foreground mb-2">
-                  推荐使用魔因API，支持 543+ 模型一站式接入
+                  推荐使用 TensorsLab，支持海量模型一站式接入
                 </p>
                 <a
-                  href="https://memefast.top"
+                  href="https://www.tensorslab.com/models"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline mb-4"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
-                  前往魔因API获取 Key
+                  前往 TensorsLab 获取 Key
                 </a>
                 <Button onClick={() => setAddDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-1" />
@@ -820,8 +865,8 @@ export function SettingsPanel() {
                                     </span>
                                   )}
                                 </h4>
-                                <p className="text-xs text-muted-foreground">
-                                  {provider.platform}
+                                <p className="text-[11px] text-muted-foreground mt-1">
+                                  {provider.platform === 'memefast' ? 'Seedream 5 限时50% 已经接入Seedance 2.0' : provider.platform}
                                 </p>
                               </div>
                             </div>
@@ -947,17 +992,17 @@ export function SettingsPanel() {
                           </div>
                         </CollapsibleTrigger>
 
-                        {/* MemeFast 购买引导 */}
+                        {/* TensorsLab 购买引导 */}
                         {provider.platform === 'memefast' && !configured && (
                           <div className="px-4 pb-2">
                             <a
-                              href="https://memefast.top"
+                              href="https://www.tensorslab.com/models"
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
                             >
                               <ExternalLink className="h-3 w-3" />
-                              前往魔因API获取 Key →
+                              前往 TensorsLab 获取 Key →
                             </a>
                           </div>
                         )}
@@ -1048,7 +1093,7 @@ export function SettingsPanel() {
 
               {/* About */}
               <div className="text-center py-8 text-muted-foreground border-t border-border">
-                <p className="text-sm font-medium">魔因漫创 Moyin Creator</p>
+                <p className="text-sm font-medium">TensorsLab Studio</p>
                 <p className="text-xs mt-1">v{appVersion} · AI 驱动的动漫视频创作工具</p>
               </div>
             </div>
@@ -1194,7 +1239,7 @@ export function SettingsPanel() {
 
               {/* About */}
               <div className="text-center py-8 text-muted-foreground border-t border-border">
-                <p className="text-sm font-medium">魔因漫创 Moyin Creator</p>
+                <p className="text-sm font-medium">TensorsLab Studio</p>
                 <p className="text-xs mt-1">v{appVersion} · AI 驱动的动漫视频创作工具</p>
               </div>
             </div>
@@ -1314,7 +1359,7 @@ export function SettingsPanel() {
 
               {/* About */}
               <div className="text-center py-8 text-muted-foreground border-t border-border">
-                <p className="text-sm font-medium">魔因漫创 Moyin Creator</p>
+                <p className="text-sm font-medium">TensorsLab Studio</p>
                 <p className="text-xs mt-1">v{appVersion} · AI 驱动的动漫视频创作工具</p>
               </div>
             </div>
@@ -1392,7 +1437,7 @@ export function SettingsPanel() {
               </div>
 
               {/* Storage Path - Single unified location */}
-              <div className="p-6 border border-border rounded-xl bg-card space-y-5">
+              <div className="p-6 border border-white/5 rounded-xl glass-card space-y-5 relative group transition-all duration-200 hover:border-white/10">
                 <h4 className="font-medium text-foreground flex items-center gap-2">
                   <HardDrive className="h-4 w-4" />
                   存储位置
@@ -1520,7 +1565,7 @@ export function SettingsPanel() {
                 </div>
               </div>
 
-              <div className="p-6 border border-border rounded-xl bg-card space-y-5">
+              <div className="p-6 border border-white/5 rounded-xl glass-card space-y-5 relative group transition-all duration-200 hover:border-white/10">
                 <h4 className="font-medium text-foreground flex items-center gap-2">
                   <Download className="h-4 w-4" />
                   应用更新
@@ -1583,7 +1628,7 @@ export function SettingsPanel() {
 
               {/* About */}
               <div className="text-center py-8 text-muted-foreground border-t border-border">
-                <p className="text-sm font-medium">魔因漫创 Moyin Creator</p>
+                <p className="text-sm font-medium">TensorsLab Studio</p>
                 <p className="text-xs mt-1">v{appVersion} · AI 驱动的动漫视频创作工具</p>
               </div>
             </div>
@@ -1596,7 +1641,7 @@ export function SettingsPanel() {
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         onSubmit={(providerData) => {
-          // 魔因API：已存在时合并 Key，不重复创建
+          // TensorsLab：已存在时合并 Key，不重复创建
           const existingMemefast = providerData.platform === 'memefast'
             ? providers.find((p) => p.platform === 'memefast')
             : null;
@@ -1612,23 +1657,18 @@ export function SettingsPanel() {
           }
           // 如果添加的是 memefast 供应商，自动设置默认服务映射（仅在对应服务尚未配置时）
           if (providerData.platform === 'memefast') {
-            // 使用 provider.id（而非 platform 字符串）避免多供应商时的歧义解析
             const pid = provider.id;
             const MEMEFAST_DEFAULT_BINDINGS: Record<string, string> = {
-              // NOTE: MemeFast 端点已升级，旧的 deepseek-v3 已不在列表中，改用 deepseek-v3.2
               script_analysis: `${pid}:deepseek-v3.2`,
-              character_generation: `${pid}:gemini-3-pro-image-preview`,
-              video_generation: `${pid}:doubao-seedance-1-5-pro-251215`,
               image_understanding: `${pid}:gemini-2.5-flash`,
             };
             for (const [feature, binding] of Object.entries(MEMEFAST_DEFAULT_BINDINGS)) {
               const current = getFeatureBindings(feature as AIFeature);
-              // 仅在未配置时设置默认值，避免覆盖用户手动选择
               if (!current || current.length === 0) {
                 setFeatureBindings(feature as AIFeature, [binding]);
                 continue;
               }
-              // 自愈：旧默认 deepseek-v3 -> deepseek-v3.2（尽量不破坏多选配置）
+              // 自愈：旧默认 deepseek-v3 -> deepseek-v3.2
               if (feature === 'script_analysis') {
                 const hasOld = current.some((b) => b.endsWith(':deepseek-v3'));
                 if (hasOld) {
@@ -1642,6 +1682,22 @@ export function SettingsPanel() {
                   const deduped = Array.from(new Set(migrated));
                   setFeatureBindings(feature as AIFeature, deduped);
                 }
+              }
+            }
+          }
+          if (providerData.platform === 'tensorslab') {
+            const pid = provider.id;
+            const TENSORSLAB_DEFAULT_BINDINGS: Record<string, string> = {
+              character_generation: `${pid}:seedreamv5`,
+              scene_generation: `${pid}:seedreamv5`,
+              video_generation: `${pid}:seedancev2`,
+              freedom_image: `${pid}:seedreamv5`,
+              freedom_video: `${pid}:seedancev2`,
+            };
+            for (const [feature, binding] of Object.entries(TENSORSLAB_DEFAULT_BINDINGS)) {
+              const current = getFeatureBindings(feature as AIFeature);
+              if (!current || current.length === 0) {
+                setFeatureBindings(feature as AIFeature, [binding]);
               }
             }
           }
@@ -1674,10 +1730,7 @@ export function SettingsPanel() {
           if (provider.platform === 'memefast' && parseApiKeys(provider.apiKey).length > 0) {
             const pid = provider.id;
             const MEMEFAST_DEFAULT_BINDINGS: Record<string, string> = {
-              // NOTE: MemeFast 端点已升级，旧的 deepseek-v3 已不在列表中，改用 deepseek-v3.2
               script_analysis: `${pid}:deepseek-v3.2`,
-              character_generation: `${pid}:gemini-3-pro-image-preview`,
-              video_generation: `${pid}:doubao-seedance-1-5-pro-251215`,
               image_understanding: `${pid}:gemini-2.5-flash`,
             };
             for (const [feature, binding] of Object.entries(MEMEFAST_DEFAULT_BINDINGS)) {
@@ -1700,6 +1753,22 @@ export function SettingsPanel() {
                   const deduped = Array.from(new Set(migrated));
                   setFeatureBindings(feature as AIFeature, deduped);
                 }
+              }
+            }
+          }
+          if (provider.platform === 'tensorslab' && parseApiKeys(provider.apiKey).length > 0) {
+            const pid = provider.id;
+            const TENSORSLAB_DEFAULT_BINDINGS: Record<string, string> = {
+              character_generation: `${pid}:seedreamv5`,
+              scene_generation: `${pid}:seedreamv5`,
+              video_generation: `${pid}:seedancev2`,
+              freedom_image: `${pid}:seedreamv5`,
+              freedom_video: `${pid}:seedancev2`,
+            };
+            for (const [feature, binding] of Object.entries(TENSORSLAB_DEFAULT_BINDINGS)) {
+              const current = getFeatureBindings(feature as AIFeature);
+              if (!current || current.length === 0) {
+                setFeatureBindings(feature as AIFeature, [binding]);
               }
             }
           }
@@ -1739,6 +1808,7 @@ export function SettingsPanel() {
           setAvailableUpdate(null);
         }}
       />
+      </div>
     </div>
   );
 }

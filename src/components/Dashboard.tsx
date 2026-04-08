@@ -274,18 +274,27 @@ export function Dashboard() {
   const allSelected = projects.length > 0 && selectedIds.size === projects.length;
 
   return (
-    <div className="flex flex-col h-full bg-background overflow-hidden">
-      {/* Header */}
-      <div className="h-16 border-b border-border bg-panel px-8 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-primary text-primary-foreground flex items-center justify-center">
-            <Aperture className="w-6 h-6" />
+    <div className="flex flex-col h-full bg-background overflow-hidden relative">
+      {/* 背景环境光晕，增强 Glass 材质的通透感 */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
+      
+      <div className="relative z-10 flex flex-col h-full">
+        {/* Header */}
+        <div className="h-16 border-b border-white/5 bg-panel/70 backdrop-blur-md shadow-sm px-8 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-transparent flex items-center justify-center">
+              <img 
+                src="https://coreva-normal.trae.ai/api/ide/v1/text_to_image?prompt=Cute%20pink%20and%20white%20kawaii%20cat%20face%2C%20large%20round%20dark%20eyes%2C%20simple%20flat%20vector%20illustration%2C%20light%20pink%20background%2C%20logo%20design&image_size=square" 
+                alt="Logo" 
+                className="w-10 h-10 rounded-lg object-cover shadow-sm"
+              />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-foreground tracking-wide">TensorsLab</h1>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-[-2px]">喵大师</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-bold text-foreground tracking-wide">魔因漫创</h1>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Moyin Creator Studio</p>
-          </div>
-        </div>
         
         <div className="flex items-center gap-2">
           {projects.length > 0 && (
@@ -299,18 +308,18 @@ export function Dashboard() {
             </Button>
           )}
           <Button
-            onClick={() => setShowNewProject(true)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            新建项目
-          </Button>
+              onClick={() => setShowNewProject(true)}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-md hover:shadow-lg hover:-translate-y-[1px] transition-all duration-200"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              新建项目
+            </Button>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-8">
-        <div className="max-w-5xl mx-auto">
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto p-8">
+        <div className="max-w-6xl mx-auto">
           {/* Section Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -344,7 +353,7 @@ export function Dashboard() {
 
           {/* New Project Input */}
           {showNewProject && (
-            <div className="mb-6 p-4 bg-muted/50 border border-border rounded-lg">
+            <div className="mb-6 p-4 glass-card rounded-xl">
               <div className="flex items-center gap-3">
                 <Input
                   placeholder="输入项目名称..."
@@ -372,7 +381,7 @@ export function Dashboard() {
           )}
 
           {/* Project Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
             {sortedProjects.map((project) => {
               const isSelected = selectedIds.has(project.id);
               const isDuplicating = duplicatingId === project.id;
@@ -381,12 +390,12 @@ export function Dashboard() {
                 <div
                   key={project.id}
                   className={cn(
-                    "group relative bg-card border rounded-xl overflow-hidden transition-all duration-200",
+                    "group relative glass-card rounded-xl overflow-hidden transition-all duration-200",
                     selectionMode
                       ? isSelected
                         ? "border-primary ring-1 ring-primary/30 cursor-pointer"
-                        : "border-border cursor-pointer hover:border-muted-foreground/30"
-                      : "border-border hover:border-primary/50 cursor-pointer",
+                        : "border-white/5 cursor-pointer hover:border-white/20"
+                      : "border-white/5 hover:border-white/20 hover:shadow-lg hover:-translate-y-[2px] cursor-pointer",
                   )}
                   onClick={() => {
                     if (selectionMode) {
@@ -409,7 +418,7 @@ export function Dashboard() {
                   )}
 
                   {/* Project Thumbnail */}
-                  <div className="aspect-video bg-muted flex items-center justify-center">
+                  <div className="aspect-video bg-black/40 flex items-center justify-center relative overflow-hidden group-hover:bg-black/60 transition-colors">
                     <Film className="w-12 h-12 text-muted-foreground/30" />
                     {isDuplicating && (
                       <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
@@ -471,31 +480,31 @@ export function Dashboard() {
 
                   {/* Hover Overlay (not in selection mode) */}
                   {!selectionMode && (
-                    <>
-                      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                        <div className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2">
-                          <FolderOpen className="w-4 h-4" />
-                          打开项目
-                        </div>
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                      <div className="bg-panel-elevated/80 backdrop-blur-md border border-white/10 text-foreground px-5 py-2 rounded-full font-medium text-sm flex items-center gap-2 shadow-xl">
+                        <FolderOpen className="w-4 h-4" />
+                        打开项目
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               );
             })}
 
             {/* Empty State */}
-            {projects.length === 0 && (
-              <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
-                <Film className="w-16 h-16 text-muted-foreground/30 mb-4" />
-                <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                  还没有项目
-                </h3>
-                <p className="text-sm text-muted-foreground/70 mb-6">
-                  创建你的第一个 AI 视频项目
+            {projects.length === 0 && !showNewProject && (
+              <div className="col-span-full flex flex-col items-center justify-center py-20 text-center glass-card border-dashed border-white/10 rounded-xl mt-8">
+                <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mb-4">
+                  <Film className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">暂无项目</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mb-6">
+                  开始你的第一个漫剧创作吧。你可以从头开始编写剧本，或者导入已有的素材。
                 </p>
-                <Button onClick={() => setShowNewProject(true)}>
+                <Button 
+                  onClick={() => setShowNewProject(true)}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:-translate-y-[1px] transition-all duration-200"
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   新建项目
                 </Button>
@@ -503,6 +512,7 @@ export function Dashboard() {
             )}
           </div>
         </div>
+      </div>
       </div>
 
       {/* ==================== Rename Dialog ==================== */}

@@ -312,9 +312,9 @@ export interface DirectorProjectData {
     aspectRatio: '16:9' | '9:16';
     resolution: '2K' | '4K' | '1K';
     videoResolution: '480p' | '720p' | '1080p';
+    fps: '24' | '30' | '60';
     sceneCount: number;
     storyPrompt: string;
-    /** 鐩存帴瀛樺偍鐨勮瑙夐鏍奸璁?ID锛堝 '2d_ghibli'锛夛紝鐢ㄤ簬绮剧‘鍙嶆煡 */
     visualStyleId?: string;
     /** 褰撳墠鍒嗛暅鏁版嵁瀵瑰簲鐨勫凡鏍″噯椋庢牸 ID锛堝垏鎹㈤鏍兼椂鐢ㄤ簬鍒ゆ柇鏄惁闇€瑕侀噸鏂版牎鍑嗭級 */
     calibratedStyleId?: string;
@@ -543,9 +543,10 @@ const defaultConfig: GenerationConfig = {
   styleTokens: ['anime style', 'manga art', '2D animation', 'cel shaded'],
   qualityTokens: ['high quality', 'detailed', 'professional'],
   negativePrompt: 'blurry, low quality, watermark, realistic, photorealistic, 3D render',
-  aspectRatio: '9:16',
+  aspectRatio: '16:9',
   imageSize: '1K',
-  videoSize: '480p',
+  videoSize: '1080p',
+  fps: '24',
   sceneCount: 5,
   concurrency: 1,
   imageProvider: 'memefast',
@@ -563,9 +564,10 @@ const defaultProjectData = (): DirectorProjectData => ({
   splitScenes: [],
   projectFolderId: null,
   storyboardConfig: {
-    aspectRatio: '9:16',
+    aspectRatio: '16:9',
     resolution: '2K',
-    videoResolution: '480p',
+    videoResolution: '1080p',
+    fps: '24',
     sceneCount: 5,
     storyPrompt: '',
     styleTokens: [],

@@ -123,6 +123,7 @@ export interface GhostClipData {
  */
 export interface GenerationConfig {
   // Style
+  styleId?: string;
   styleTokens: string[];      // e.g., ['anime style', 'manga art', '2D animation']
   qualityTokens: string[];    // e.g., ['high quality', '4k', 'detailed']
   negativePrompt: string;
@@ -131,6 +132,7 @@ export interface GenerationConfig {
   aspectRatio: '16:9' | '9:16';
   imageSize: '1K' | '2K' | '4K';
   videoSize: '480p' | '720p' | '1080p';
+  fps?: '24' | '30' | '60';
   
   // Screenplay
   sceneCount: number;         // How many scenes to generate in screenplay

@@ -4,9 +4,10 @@
 import { getFeatureConfig } from "@/lib/ai/feature-router";
 import { uploadToImageHost, isImageHostConfigured } from "@/lib/image-host";
 import { saveVideoToLocal, readImageAsBase64 } from "@/lib/image-storage";
-import { normalizeUrl } from "./use-image-generation";
+import { normalizeUrl } from "@/components/panels/director/use-image-generation";
 import { useAPIConfigStore } from "@/stores/api-config-store";
 import { retryOperation } from "@/lib/utils/retry";
+import { isTensorsLabBaseUrl, isTensorsLabVideoModel, tensorslabGenerateVideo } from "@/lib/ai/tensorslab/client";
 
 // ==================== Content Moderation ====================
 
@@ -426,6 +427,7 @@ export async function callVideoGenerationApi(
   keyManager?: { getCurrentKey?: () => string | null; handleError: (status: number, errorText?: string) => boolean; getAvailableKeyCount: () => number; getTotalKeyCount: () => number },
   platform?: string,
   videoResolution?: '480p' | '720p' | '1080p',
+  fps?: '24' | '30' | '60',
   /** Seedance 2.0: 视频引用 URL 列表 (运镜/动作复刻) */
   videoRefs?: string[],
   /** Seedance 2.0: 音频引用 URL 列表 (节奏/BGM) */
@@ -449,6 +451,24 @@ export async function callVideoGenerationApi(
   const videoBaseUrl = featureConfig?.baseUrl?.replace(/\/+$/, '');
   if (!videoBaseUrl) {
     throw new Error('请先在设置中配置视频生成服务映射');
+  }
+
+  if (isTensorsLabBaseUrl(videoBaseUrl) && isTensorsLabVideoModel(model)) {
+    const currentApiKey = keyManager?.getCurrentKey?.() || apiKey;
+    const result = await tensorslabGenerateVideo({
+      apiKey: currentApiKey,
+      baseUrl: videoBaseUrl,
+      model,
+      prompt,
+      ratio: aspectRatio,
+      duration: duration || 5,
+      resolution: videoResolution || '1080p',
+      fps: fps || '24',
+      sourceImages: imageWithRoles,
+      signal,
+    });
+    onProgress?.(100);
+    return result.videoUrl;
   }
 
   // 确保所有输入图片满足视频 API 的最小尺寸要求（如 Seedance ≥ 300px）

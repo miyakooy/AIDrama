@@ -11,6 +11,7 @@ import { getFeatureConfig, getFeatureNotConfiguredMessage } from '@/lib/ai/featu
 import { retryOperation } from '@/lib/utils/retry';
 import { resolveImageApiFormat } from '@/lib/api-key-manager';
 import { useAPIConfigStore } from '@/stores/api-config-store';
+import { isTensorsLabBaseUrl, isTensorsLabImageModel, tensorslabGenerateImage } from '@/lib/ai/tensorslab/client';
 
 export interface ImageGenerationParams {
   prompt: string;
@@ -171,6 +172,20 @@ async function generateImage(
 
   const aspectRatio = params.aspectRatio || '1:1';
   const resolution = params.resolution || '2K';
+
+  if (isTensorsLabBaseUrl(baseUrl) && isTensorsLabImageModel(model)) {
+    const currentApiKey = featureConfig.keyManager?.getCurrentKey?.() || apiKey;
+    const result = await tensorslabGenerateImage({
+      apiKey: currentApiKey,
+      baseUrl,
+      model,
+      prompt: params.prompt,
+      aspectRatio,
+      resolution,
+      referenceImages: params.referenceImages,
+    });
+    return { imageUrl: result.imageUrl, taskId: result.taskId };
+  }
 
   // 根据元数据决定图片生成 API 格式
   const endpointTypes = useAPIConfigStore.getState().modelEndpointTypes[model];
@@ -791,6 +806,21 @@ export async function submitGridImageRequest(params: {
 }): Promise<{ imageUrl?: string; taskId?: string; pollUrl?: string }> {
   const { model, prompt, apiKey, baseUrl, aspectRatio, resolution, referenceImages, keyManager, signal } = params;
   const normalizedBase = baseUrl.replace(/\/+$/, '');
+
+  if (isTensorsLabBaseUrl(normalizedBase) && isTensorsLabImageModel(model)) {
+    const currentApiKey = keyManager?.getCurrentKey?.() || apiKey;
+    const result = await tensorslabGenerateImage({
+      apiKey: currentApiKey,
+      baseUrl: normalizedBase,
+      model,
+      prompt,
+      aspectRatio,
+      resolution,
+      referenceImages,
+      signal,
+    });
+    return { imageUrl: result.imageUrl, taskId: result.taskId };
+  }
 
   // 检测 API 格式（与 generateImage 一致）
   const endpointTypes = useAPIConfigStore.getState().modelEndpointTypes[model];

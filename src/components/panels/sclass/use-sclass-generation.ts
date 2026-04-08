@@ -37,7 +37,7 @@ import {
   convertToHttpUrl,
   saveVideoLocally,
   isContentModerationError,
-} from "../director/use-video-generation";
+} from "@/lib/ai/video-generator";
 import {
   buildGroupPrompt,
   collectAllRefs,
@@ -374,6 +374,7 @@ export function useSClassGeneration() {
               keyManager,
               featureConfig.platform,
               videoResolution,
+              undefined, // fps
               videoRefUrls.length > 0 ? videoRefUrls : undefined,
               audioRefUrls.length > 0 ? audioRefUrls : undefined,
               enableAudio,

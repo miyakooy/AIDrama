@@ -225,7 +225,7 @@ export function SimpleTimeline() {
   }
 
   return (
-    <div className="h-full bg-panel border-t border-border flex flex-col">
+    <div className="h-full flex flex-col glass rounded-xl border border-white/5">
       {/* Controls Bar */}
       <div className="h-10 flex items-center justify-between px-3 border-b border-border">
         <div className="flex items-center gap-2">

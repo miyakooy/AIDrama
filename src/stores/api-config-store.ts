@@ -481,11 +481,11 @@ export interface APIConfigStatus {
 
 /**
  * 供应商信息映射
- * 1. memefast - 魔因API，全功能 AI 中转（推荐）
+ * 1. memefast - TensorsLab，全功能 AI 中转（推荐）
  * 2. runninghub - RunningHub，视角切换/多角度生成
  */
 const PROVIDER_INFO: Record<ProviderId, { name: string; services: ServiceType[] }> = {
-  memefast: { name: '魔因API', services: ['chat', 'image', 'video', 'vision'] },
+  memefast: { name: 'TensorsLab', services: ['chat', 'image', 'video', 'vision'] },
   runninghub: { name: 'RunningHub', services: ['image', 'vision'] },
   openai: { name: 'OpenAI', services: [] },
   custom: { name: 'Custom', services: [] },
@@ -1130,7 +1130,7 @@ export const useAPIConfigStore = create<APIConfigStore>()(
     }),
     {
       name: 'opencut-api-config',  // localStorage key
-      version: 13,  // v13: clear stale metadata caches on upgrade + fix chained migration
+      version: 14,  // v14: rename memefast to TensorsLab
       migrate: (persistedState: unknown, version: number) => {
         // Use mutable result object for chained migration
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1417,6 +1417,28 @@ export const useAPIConfigStore = create<APIConfigStore>()(
           }
           
           version = 13;
+        }
+
+        // v13 → v14: Rename 魔因API to TensorsLab and update baseUrl
+        if (version <= 13) {
+          if (Array.isArray(result.providers)) {
+            result.providers = result.providers.map((p: IProvider) => {
+              if (p.platform === 'memefast') {
+                const newName = p.name === '魔因API' ? 'TensorsLab' : p.name;
+                const newBaseUrl = p.baseUrl?.includes('memefast.top') ? 'https://api.tensorslab.com' : p.baseUrl;
+                if (newName !== p.name || newBaseUrl !== p.baseUrl) {
+                  console.log(`[APIConfig] v13→v14: Migrated memefast provider to TensorsLab`);
+                }
+                return {
+                  ...p,
+                  name: newName,
+                  baseUrl: newBaseUrl,
+                };
+              }
+              return p;
+            });
+          }
+          version = 14;
         }
 
         // ========== Final normalization (always runs) ==========

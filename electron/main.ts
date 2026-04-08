@@ -7,6 +7,33 @@ import fs from 'node:fs'
 import https from 'node:https'
 import http from 'node:http'
 import os from 'node:os'
+
+// --- Bypass EPERM issue by setting a custom userData path ---
+const customUserDataPath = path.join(app.getPath('appData'), 'TensorsLabStudioData')
+try {
+  if (!fs.existsSync(customUserDataPath)) {
+    fs.mkdirSync(customUserDataPath, { recursive: true })
+  }
+  fs.accessSync(customUserDataPath, fs.constants.W_OK)
+  app.setPath('userData', customUserDataPath)
+} catch (e) {
+  const fallbackPath = path.join(app.getPath('temp'), `tensorslab-studio-fallback-${Date.now()}`)
+  try {
+    if (!fs.existsSync(fallbackPath)) {
+      fs.mkdirSync(fallbackPath, { recursive: true })
+    }
+    app.setPath('userData', fallbackPath)
+  } catch (err) {
+    console.error("CRITICAL: Cannot create any userData directory.", err)
+  }
+}
+
+// 针对 macOS 环境禁用沙盒，避免 Vite 开发环境下的崩溃
+if (process.platform === 'darwin') {
+  app.commandLine.appendSwitch('no-sandbox')
+}
+// ---------------------------------------------------------
+
 import packageMetadata from '../package.json'
 import type { AvailableUpdateInfo, OpenExternalResult, UpdateCheckResult, UpdateManifest } from '../src/types/update'
 
@@ -159,7 +186,7 @@ async function resolveAvailableUpdate(currentVersion: string): Promise<Available
 
 function createWindow() {
   win = new BrowserWindow({
-    title: '魔因漫创',
+    title: 'TensorsLab',
     width: 1400,
     height: 900,
     minWidth: 1200,
@@ -260,8 +287,12 @@ function saveStorageConfig() {
 }
 
 function ensureDir(dirPath: string) {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true })
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true })
+    }
+  } catch (error) {
+    console.error(`[ensureDir] Failed to create directory ${dirPath}:`, error)
   }
 }
 
@@ -1613,7 +1644,25 @@ function getDemoDataPath(): string {
  * Uses fs.cpSync which is available in Node 16.7+.
  */
 function copyDirSync(src: string, dest: string) {
-  fs.cpSync(src, dest, { recursive: true, force: false, errorOnExist: false })
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true })
+  }
+  const entries = fs.readdirSync(src, { withFileTypes: true })
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name)
+    const destPath = path.join(dest, entry.name)
+    if (entry.isDirectory()) {
+      copyDirSync(srcPath, destPath)
+    } else {
+      fs.copyFileSync(srcPath, destPath)
+      // Force read/write permissions to avoid EPERM on readonly packaged files
+      try {
+        fs.chmodSync(destPath, 0o666)
+      } catch (e) {
+        // ignore chmod errors on some filesystems
+      }
+    }
+  }
 }
 
 /**

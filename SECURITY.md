@@ -11,7 +11,7 @@
 If you discover a security vulnerability, please report it responsibly:
 
 1. **DO NOT** open a public GitHub issue
-2. Send an email to **memecalculate@gmail.com** with:
+2. Send an email to **miyako@tensorslab.com** with:
    - Description of the vulnerability
    - Steps to reproduce
    - Potential impact assessment
@@ -24,4 +24,4 @@ If you discover a security vulnerability, please report it responsibly:
 - We will release a fix as soon as possible
 - We will credit you in the release notes (unless you prefer anonymity)
 
-Thank you for helping keep Moyin Creator and its users safe.
+Thank you for helping keep TensorsLab Studio and its users safe.
