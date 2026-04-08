@@ -1,6 +1,5 @@
 <p align="center">
-  <img src="https://coreva-normal.trae.ai/api/ide/v1/text_to_image?prompt=A%20cute%20white%20fluffy%20cat%20with%20blue%20eyes%20against%20a%20deep%20blue%20floral%20background%2C%20oil%20painting%20style%2C%20soft%20lighting%2C%20elegant%2C%20dreamy&image_size=square" width="160" alt="TensorsLab Logo" style="border-radius: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);" />
-</p>
+  
 <h1 align="center">TensorsLab Studio</h1>
 
 <p align="center">
@@ -10,7 +9,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="License" /></a>
   <a href="https://github.com/tensorslab/studio/releases"><img src="https://img.shields.io/github/v/release/tensorslab/studio" alt="Release" /></a>
-  <a href="https://github.com/tensorslab/studio/stargazers"><img src="https://img.shields.io/github/stars/tensorslab/studio" alt="Stars" /></a>
+  <a href="https://github.com/tensorslab/studio/stargazers">
 </p>
 
 <p align="center">
