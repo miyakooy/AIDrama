@@ -26,6 +26,7 @@ import { SettingsPanel } from "@/components/panels/SettingsPanel";
 import { ExportView } from "@/components/panels/export";
 import { OverviewPanel } from "@/components/panels/overview";
 import { AssetsView } from "@/components/panels/assets";
+import { MagicCreator } from "@/components/panels/magic-creator";
 
 export function Layout() {
   const { activeTab, inProject } = useMediaPanelStore();
@@ -36,7 +37,7 @@ export function Layout() {
       <div className="h-full flex bg-background">
         <TabBar />
         <div className="flex-1">
-          {activeTab === "settings" ? <SettingsPanel /> : <Dashboard />}
+          {activeTab === "settings" ? <SettingsPanel /> : activeTab === "magic-creator" ? <MagicCreator /> : <Dashboard />}
         </div>
       </div>
     );

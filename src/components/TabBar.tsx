@@ -10,7 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ChevronLeft, LayoutDashboard, Settings, Sun, Moon, HelpCircle } from "lucide-react";
+import { ChevronLeft, LayoutDashboard, Settings, Sun, Moon, HelpCircle, Sparkles } from "lucide-react";
 
 export function TabBar() {
   const { activeTab, inProject, setActiveTab, setInProject } = useMediaPanelStore();
@@ -30,7 +30,27 @@ export function TabBar() {
           </div>
         </div>
         {/* Dashboard nav */}
-        <nav className="flex-1 py-1">
+        <nav className="flex-1 py-1 space-y-1">
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setActiveTab("magic-creator")}
+                  className={cn(
+                    "w-full flex flex-col items-center py-2.5 transition-colors relative group",
+                    activeTab === "magic-creator"
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  )}
+                >
+                  <Sparkles className="h-5 w-5 mb-0.5" />
+                  <span className="text-[9px]">一键创作</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Magic Creator (向导模式)</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -44,10 +64,10 @@ export function TabBar() {
                   )}
                 >
                   <LayoutDashboard className="h-5 w-5 mb-0.5" />
-                  <span className="text-[9px]">项目</span>
+                  <span className="text-[9px]">项目大厅</span>
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right">项目仪表盘</TooltipContent>
+              <TooltipContent side="right">专业模式项目列表</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </nav>
