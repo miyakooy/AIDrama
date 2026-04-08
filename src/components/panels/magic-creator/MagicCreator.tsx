@@ -9,6 +9,7 @@ import { generateScriptFromIdea, type ScriptGenerationOptions } from "@/lib/scri
 import { importFullScript } from "@/lib/script/full-script-service";
 import { getFeatureConfig, getFeatureNotConfiguredMessage } from "@/lib/ai/feature-router";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function MagicCreator() {
   const [prompt, setPrompt] = useState("");
@@ -32,13 +33,15 @@ export function MagicCreator() {
         // Ensure we switch to the demo project correctly
         await switchProject(DEMO_PROJECT_ID);
         
-        setProgressText("演示资产构建完成，进入导演台...");
+        setProgressText("演示资产构建完成...");
         
         setTimeout(() => {
           setIsGenerating(false);
-          setInProject(true);
-          setActiveTab("director");
-          toast.success("演示项目加载完成！您可以直接进行批量生成。");
+          // OiiOii Style: DO NOT jump to Director automatically anymore
+          // Instead, just clear the input and show a success toast.
+          // The user will stay in the MagicCreator dialog flow.
+          setPrompt("");
+          toast.success("演示项目加载完成！已在后台准备就绪。");
         }, 800);
       } catch (error) {
         console.error("Demo load failed:", error);
@@ -119,31 +122,43 @@ export function MagicCreator() {
               />
               
               {/* Action Bar */}
-              <div className="flex items-center justify-between p-4 bg-white/[0.02] border-t border-white/5">
+              <div className="flex items-center justify-between p-4 bg-white/[0.02] border-t border-white/5 relative">
+                
+                {/* Left tools */}
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" className="text-xs text-slate-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 h-8 px-3">
-                    ✨ 帮我润色
+                  <Button variant="ghost" size="sm" className="text-xs text-slate-300 hover:text-white rounded-[16px] bg-white/[0.04] hover:bg-white/10 h-8 px-4 font-medium transition-colors border border-white/5">
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5 text-yellow-400" /> 帮我润色
                   </Button>
-                  <Button variant="ghost" size="sm" className="text-xs text-slate-400 hover:text-white rounded-full bg-white/5 hover:bg-white/10 h-8 px-3">
+                  <Button variant="ghost" size="sm" className="text-xs text-slate-300 hover:text-white rounded-[16px] bg-white/[0.04] hover:bg-white/10 h-8 px-4 font-medium transition-colors border border-white/5">
                     🎲 随机灵感
                   </Button>
                 </div>
                 
+                {/* Oii Style Generating Overlay Box */}
+                {isGenerating && (
+                  <div className="absolute right-3 bottom-3 flex items-center bg-[#1c1c1c]/90 backdrop-blur-md border border-white/10 p-2 pr-6 rounded-[24px] shadow-2xl z-20 overflow-hidden min-w-[200px] animate-in slide-in-from-right-4 fade-in duration-300">
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-purple-500 to-transparent animate-[slide_2s_linear_infinite]"></div>
+                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center shrink-0 mr-3">
+                      <div className="w-4 h-4 rounded-sm border-2 border-purple-500 animate-[spin_3s_ease-in-out_infinite]"></div>
+                    </div>
+                    <div className="flex flex-col flex-1">
+                      <span className="text-xs font-semibold text-white tracking-wide">AI Agent Working</span>
+                      <span className="text-[10px] text-slate-400 truncate w-[140px] animate-pulse">
+                        {progressText || "调度中..."}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <Button 
                   onClick={handleGenerate}
                   disabled={!prompt.trim() || isGenerating}
-                  className="bg-white text-black hover:bg-slate-200 rounded-full px-6 h-10 font-medium transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      构思中...
-                    </>
-                  ) : (
-                    <>
-                      一键生成 <ArrowRight className="w-4 h-4 ml-2" />
-                    </>
+                  className={cn(
+                    "bg-white text-black hover:bg-slate-200 rounded-[24px] px-8 h-11 font-medium transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-0 disabled:pointer-events-none shadow-[0_0_20px_rgba(255,255,255,0.15)] ml-auto",
+                    isGenerating ? "absolute opacity-0 pointer-events-none" : "relative opacity-100"
                   )}
+                >
+                  一键生成 <ArrowRight className="w-4 h-4 ml-2 opacity-70" />
                 </Button>
               </div>
             </div>
@@ -166,47 +181,8 @@ export function MagicCreator() {
         </div>
       </div>
 
-      {/* Progress Overlay (when generating) */}
-      {isGenerating && (
-        <div className="absolute inset-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md flex items-center justify-center animate-in fade-in duration-500">
-          <div className="flex flex-col items-center max-w-md w-full px-8">
-            
-            {/* OiiOii Style Hexagon/Cube Loader Animation */}
-            <div className="relative w-32 h-32 mb-12 flex items-center justify-center">
-              <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-purple-500/20 rounded-2xl rotate-45 animate-[spin_4s_linear_infinite] blur-xl"></div>
-              <div className="absolute w-16 h-16 bg-[#1c1c1c] border border-white/10 rounded-2xl rotate-45 shadow-[0_0_40px_rgba(139,92,246,0.3)] animate-[spin_3s_ease-in-out_infinite_reverse] flex items-center justify-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg -rotate-45 animate-pulse"></div>
-              </div>
-            </div>
-
-            {/* Title & Progress Description */}
-            <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 mb-4 tracking-wide text-center">
-              AI 引擎正在构建你的世界
-            </h3>
-            
-            <div className="w-full bg-[#1c1c1c] border border-white/5 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-              {/* Animated Progress Bar Background */}
-              <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 w-[200%] animate-[slide_2s_linear_infinite]"></div>
-              
-              <div className="flex items-center gap-4 text-slate-300">
-                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0">
-                  <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-white mb-1">当前状态</span>
-                  <span className="text-xs text-slate-400 tracking-wide">
-                    {progressText || "正在分析语义与提取角色..."}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <p className="mt-8 text-xs text-slate-500 text-center animate-pulse">
-              大模型调度中，请勿关闭窗口...
-            </p>
-          </div>
-        </div>
-      )}
+      {/* OiiOii Style Generating Process (Inline, No Overlay) */}
+      {/* We removed the full screen overlay. Progress is now shown inside the input box */}
     </div>
   );
 }
