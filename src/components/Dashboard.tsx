@@ -274,14 +274,14 @@ export function Dashboard() {
   const allSelected = projects.length > 0 && selectedIds.size === projects.length;
 
   return (
-    <div className="flex flex-col h-full bg-background overflow-hidden relative">
+    <div className="flex flex-col h-full bg-[#0a0a0a] overflow-hidden relative selection:bg-primary/30">
       {/* 背景环境光晕，增强 Glass 材质的通透感 */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[140px] pointer-events-none z-0" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[140px] pointer-events-none z-0" />
       
       <div className="relative z-10 flex flex-col h-full">
         {/* Header */}
-        <div className="h-16 border-b border-white/5 bg-panel/70 backdrop-blur-md shadow-sm px-8 flex items-center justify-between shrink-0">
+        <div className="h-16 bg-[#0a0a0a] border-b border-white/5 px-8 flex items-center justify-between shrink-0 relative z-20">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-transparent flex items-center justify-center">
               <img 
@@ -291,39 +291,34 @@ export function Dashboard() {
               />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground tracking-wide">TensorsLab</h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-[-2px]">喵大师</p>
+              <h1 className="text-xl font-bold text-foreground tracking-wide">OiiOii</h1>
             </div>
           </div>
         
-        <div className="flex items-center gap-2">
-          {projects.length > 0 && (
-            <Button
-              variant={selectionMode ? "secondary" : "outline"}
-              size="sm"
-              onClick={toggleSelectionMode}
-            >
-              <CheckSquare className="w-4 h-4 mr-1.5" />
-              {selectionMode ? "退出选择" : "管理"}
-            </Button>
-          )}
-          <Button
-              onClick={() => setShowNewProject(true)}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-md hover:shadow-lg hover:-translate-y-[1px] transition-all duration-200"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              新建项目
-            </Button>
+        <div className="flex items-center gap-6 text-sm font-medium">
+          <button className="text-foreground hover:text-primary transition-colors">全部</button>
+          <button className="text-muted-foreground hover:text-foreground transition-colors">我的收藏</button>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinelinejoin="round" className="text-muted-foreground group-focus-within:text-primary transition-colors"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <Input 
+              placeholder="搜索项目名称" 
+              className="w-64 h-9 pl-9 bg-white/5 border-white/10 focus-visible:ring-1 focus-visible:ring-primary rounded-full text-sm"
+            />
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto p-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Section Header */}
+      <div className="flex-1 overflow-auto p-8 bg-[#0a0a0a] relative z-10">
+        <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-bold text-foreground mb-1">我的项目</h2>
+              <h2 className="text-xl font-bold text-white mb-1">我的项目</h2>
               <p className="text-sm text-muted-foreground">
                 共 {projects.length} 个项目
                 {selectionMode && selectedIds.size > 0 && (
@@ -331,71 +326,100 @@ export function Dashboard() {
                 )}
               </p>
             </div>
-
+            
             {/* Selection toolbar */}
-            {selectionMode && (
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                  {allSelected ? "取消全选" : "全选"}
-                </Button>
+            <div className="flex items-center gap-2">
+              {projects.length > 0 && (
                 <Button
-                  variant="destructive"
+                  variant={selectionMode ? "secondary" : "outline"}
                   size="sm"
-                  disabled={selectedIds.size === 0}
-                  onClick={() => setBatchDeleteConfirm(true)}
+                  className="bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                  onClick={toggleSelectionMode}
                 >
-                  <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                  删除选中 ({selectedIds.size})
+                  <CheckSquare className="w-4 h-4 mr-1.5" />
+                  {selectionMode ? "退出选择" : "批量管理"}
                 </Button>
-              </div>
-            )}
+              )}
+              {selectionMode && (
+                <>
+                  <Button variant="outline" size="sm" className="bg-white/5 border-white/10 hover:bg-white/10 text-white" onClick={handleSelectAll}>
+                    {allSelected ? "取消全选" : "全选"}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={selectedIds.size === 0}
+                    onClick={() => setBatchDeleteConfirm(true)}
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                    删除选中 ({selectedIds.size})
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
           {/* New Project Input */}
           {showNewProject && (
-            <div className="mb-6 p-4 glass-card rounded-xl">
-              <div className="flex items-center gap-3">
+            <div className="mb-6 p-5 bg-[#1c1c1c] border border-white/10 rounded-2xl">
+              <div className="flex items-center gap-4">
                 <Input
                   placeholder="输入项目名称..."
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreateProject()}
-                  className="flex-1"
+                  className="flex-1 bg-[#2a2a2a] border-white/5 h-11 focus-visible:ring-1 focus-visible:ring-primary rounded-xl text-white"
                   autoFocus
                 />
-                <Button onClick={handleCreateProject} disabled={!newProjectName.trim()}>
+                <Button 
+                  onClick={handleCreateProject} 
+                  disabled={!newProjectName.trim()}
+                  className="bg-white text-black hover:bg-slate-200 h-11 px-6 rounded-xl font-medium"
+                >
                   创建
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-11 w-11 rounded-xl text-slate-400 hover:text-white hover:bg-white/10"
                   onClick={() => {
                     setShowNewProject(false);
                     setNewProjectName("");
                   }}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </Button>
               </div>
             </div>
           )}
 
           {/* Project Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-12">
+            
+            {/* OiiOii New Project Button Card */}
+            <div 
+              onClick={() => setShowNewProject(true)}
+              className="group relative bg-[#1c1c1c] border border-white/5 rounded-2xl overflow-hidden hover:border-white/20 transition-all duration-200 cursor-pointer flex flex-col items-center justify-center min-h-[220px]"
+            >
+              <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center mb-3 group-hover:bg-white/10 transition-colors">
+                <Plus className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-white font-medium">新建项目</span>
+            </div>
             {sortedProjects.map((project) => {
               const isSelected = selectedIds.has(project.id);
               const isDuplicating = duplicatingId === project.id;
 
               return (
-                <div
+                  <div
                   key={project.id}
                   className={cn(
-                    "group relative glass-card rounded-xl overflow-hidden transition-all duration-200",
+                    "group relative bg-[#1c1c1c] rounded-2xl overflow-hidden transition-all duration-300 min-h-[220px] flex flex-col",
                     selectionMode
                       ? isSelected
-                        ? "border-primary ring-1 ring-primary/30 cursor-pointer"
-                        : "border-white/5 cursor-pointer hover:border-white/20"
-                      : "border-white/5 hover:border-white/20 hover:shadow-lg hover:-translate-y-[2px] cursor-pointer",
+                        ? "border-primary ring-2 ring-primary cursor-pointer"
+                        : "border-transparent cursor-pointer hover:border-white/10"
+                      : "border-transparent hover:border-white/20 hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)] cursor-pointer"
                   )}
                   onClick={() => {
                     if (selectionMode) {
@@ -418,23 +442,26 @@ export function Dashboard() {
                   )}
 
                   {/* Project Thumbnail */}
-                  <div className="aspect-video bg-black/40 flex items-center justify-center relative overflow-hidden group-hover:bg-black/60 transition-colors">
-                    <Film className="w-12 h-12 text-muted-foreground/30" />
+                  <div className="aspect-[16/10] bg-[#2a2a2a] flex items-center justify-center relative overflow-hidden transition-colors rounded-t-2xl">
+                    <img 
+                      src={`https://picsum.photos/seed/${project.id}/400/250`} 
+                      alt="Thumbnail" 
+                      className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
+                    />
                     {isDuplicating && (
-                      <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
                       </div>
                     )}
                   </div>
 
                   {/* Project Info */}
-                  <div className="p-4">
-                    <h3 className="font-medium text-foreground truncate mb-2">
+                  <div className="p-4 pt-3 bg-[#1c1c1c] rounded-b-2xl h-full flex flex-col justify-start">
+                    <h3 className="font-semibold text-[15px] text-white truncate mb-1.5 leading-snug">
                       {project.name}
                     </h3>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="w-3 h-3" />
+                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground/80">
                         <span>{formatDate(project.updatedAt)}</span>
                       </div>
 
@@ -446,32 +473,43 @@ export function Dashboard() {
                               onClick={(e) => e.stopPropagation()}
                               className="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-muted text-muted-foreground transition-all"
                             >
-                              <MoreVertical className="w-4 h-4" />
+                              <MoreVertical className="w-4 h-4 text-slate-300" />
                             </button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenuItem onClick={() => openRenameDialog(project.id, project.name)}>
-                              <Pencil className="w-4 h-4 mr-2" />
-                              重命名
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDuplicate(project.id)}
-                              disabled={isDuplicating}
+                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()} className="bg-[#1a1a1a] border-white/10 p-1.5 min-w-[140px] shadow-xl">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openRenameDialog(project.id, project.name);
+                              }}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors"
                             >
-                              <Copy className="w-4 h-4 mr-2" />
-                              复制项目
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => {
+                              <Pencil className="w-4 h-4" />
+                              <span>重命名</span>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDuplicate(project.id);
+                              }}
+                              disabled={isDuplicating}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/10 rounded-md transition-colors disabled:opacity-50"
+                            >
+                              <Copy className="w-4 h-4" />
+                              <span>复制项目</span>
+                            </button>
+                            <DropdownMenuSeparator className="bg-white/10 my-1" />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 deleteProject(project.id);
                                 toast.success(`已删除「${project.name}」`);
                               }}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-md transition-colors"
                             >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              删除
-                            </DropdownMenuItem>
+                              <Trash2 className="w-4 h-4" />
+                              <span>删除</span>
+                            </button>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       )}
