@@ -34,7 +34,7 @@
 </p>
 -->
 
-![1771428968476_3nkjdd](https://github.com/user-attachments/assets/582ee70f-f0dc-433b-9d5c-2ddb8f463450)
+![1771428968476_3nkjdd](https://coreva-normal.trae.ai/api/ide/v1/text_to_image?prompt=A%20futuristic%20UI%20dashboard%20mockup%20for%20an%20AI%20video%20generation%20tool%20called%20TensorsLab%20Studio%2C%20dark%20mode%2C%20neon%20blue%20accents%2C%20professional%20layout%2C%20cinematic%20lighting&image_size=landscape_16_9)
 
 ## 简介
 
@@ -45,7 +45,7 @@
 每一步的产出自动流入下一步，无需手动搅合。支持多种主流 AI 大模型，适合短剧、动漫番剧、预告片等场景的批量化生产。
 
 
-基础设置教程：https://www.bilibili.com/video/BV1FsZDBHExJ/?vd_source=802462c0708e775ce81f95b2e486f175
+
 
 
 ## 功能特性
@@ -93,9 +93,7 @@
 - 支持多个 AI 图像/视频生成服务商
 - API Key 轮询负载均衡
 - 任务队列管理，自动重试
-### 下载
-打包程序版本0.1.7，对应开源源码
-链接: https://pan.baidu.com/s/1ImH6tOIiuFxIDXC0fC-6Lg 提取码: 8888 
+
 
 
 ## 快速开始
@@ -185,19 +183,12 @@ studio/
 - 📧 Email: [miyako@tensorslab.com](mailto:miyako@tensorslab.com)
 - 🐙 GitHub: [https://github.com/tensorslab/studio](https://github.com/tensorslab/studio)
 
-### 联系我们
 
-
-
-<img src="https://github.com/user-attachments/assets/0921bb28-36ec-4c19-a8cc-e5f0d6bbf514" width="200" alt="交流群" />
-
-
-<img src="docs/images/wechat-contact.png" width="200" alt="微信联系" />
 
 
 ---
 
-<p align="center">Made with ❤️ by <a href="https://github.com/MemeCalculate">MemeCalculate</a></p>
+<p align="center">Made with ❤️ by <a href="https://github.com/tensorslab">TensorsLab</a></p>
 
 
 

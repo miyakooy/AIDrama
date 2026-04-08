@@ -28,6 +28,8 @@
 
 ---
 
+![1771428968476_3nkjdd](https://coreva-normal.trae.ai/api/ide/v1/text_to_image?prompt=A%20futuristic%20UI%20dashboard%20mockup%20for%20an%20AI%20video%20generation%20tool%20called%20TensorsLab%20Studio%2C%20dark%20mode%2C%20neon%20blue%20accents%2C%20professional%20layout%2C%20cinematic%20lighting&image_size=landscape_16_9)
+
 ## Overview
 
 **TensorsLab Studio** is a production-grade tool for AI film & anime creators. Five interconnected modules cover the entire pipeline from script to final video:
@@ -175,4 +177,4 @@ Contributions are welcome! Please read the [Contributing Guide](CONTRIBUTING.md)
 
 ---
 
-<p align="center">Made with ❤️ by <a href="https://github.com/MemeCalculate">MemeCalculate</a></p>
+<p align="center">Made with ❤️ by <a href="https://github.com/tensorslab">TensorsLab</a></p>
