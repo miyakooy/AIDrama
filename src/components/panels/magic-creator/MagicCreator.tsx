@@ -370,6 +370,37 @@ export function MagicCreator() {
     }, 1500);
   };
 
+  const handleSendMessage = () => {
+    if (!chatInput.trim()) return;
+
+    // Add user message
+    setMessages(prev => [...prev, {
+      id: Date.now().toString(),
+      role: 'user',
+      content: chatInput
+    }]);
+
+    const currentInput = chatInput;
+    setChatInput("");
+    setIsFlowRunning(true);
+
+    // Simulate agent response
+    setTimeout(() => {
+      setMessages(prev => [...prev, {
+        id: Date.now().toString() + '_resp',
+        role: 'storyboard_director',
+        status: 'done',
+        content: (
+          <div className="text-sm text-slate-300 space-y-2 leading-relaxed">
+            <p>收到修改意见：「{currentInput}」</p>
+            <p>分镜喵正在调整镜头，画板稍后更新... 🎬</p>
+          </div>
+        )
+      }]);
+      setIsFlowRunning(false);
+    }, 1500);
+  };
+
   // --- Render Hero View ---
   if (mode === 'hero') {
     return (
@@ -572,6 +603,12 @@ export function MagicCreator() {
             <Textarea
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
               placeholder="输入你的修改意见，或拖拽图片..."
               className="min-h-[60px] w-full bg-transparent border-0 resize-none text-sm p-2 text-white placeholder:text-slate-500 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
@@ -587,7 +624,12 @@ export function MagicCreator() {
                   @ 分镜
                 </Button>
               </div>
-              <Button size="icon" className="h-8 w-8 rounded-full bg-[#E11D48] hover:bg-[#E11D48]/90 text-white shadow-md transition-transform active:scale-95">
+              <Button 
+                size="icon" 
+                onClick={handleSendMessage}
+                disabled={!chatInput.trim()}
+                className="h-8 w-8 rounded-full bg-[#E11D48] hover:bg-[#E11D48]/90 text-white shadow-md transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <Send className="w-3.5 h-3.5" />
               </Button>
             </div>
